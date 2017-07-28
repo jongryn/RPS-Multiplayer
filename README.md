@@ -1,6 +1,6 @@
 # RPS-Multiplayer
 
-Link: 
+Link: https://jongryn.github.io/RPS-Multiplayer/
 
 Week 7 Assignment - Rock Paper Scissors (Challenge)
 RPS? Again?! Whaaaat?!!
