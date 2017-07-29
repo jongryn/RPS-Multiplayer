@@ -1,0 +1,96 @@
+<!-- Created: July 28, 2017 2:25 PM
+Author: Jonathan Gryn
+Revisions: Jon (7/28/17) - Added html-->
+
+<!DOCTYPE html>
+<html lan="US-en">
+<head>
+  <meta charset="UTF-8">
+  <title>Rock, Paper, Scissors - Multiplayer</title>
+
+  <link rel="stylesheet" type="text/css" href="assets/css/reset.css">
+  <link rel="stylesheet" type="text/css" href="assets/css/style.css">
+
+  <!-- Bootstrap is used to make game look nicer -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+ <!-- Firebase CDN -->
+ <script src="https://www.gstatic.com/firebasejs/4.2.0/firebase.js"></script>
+
+</head>
+<body>
+  <div class='row'>
+    <div class='col-md-3'></div>
+    <div class='col-md-6'>
+      <div class='input-group'>
+        <input type='text' class='form-control' id='userName' placeholder='name'>
+          <span class='input-group-btn'>
+            <button class='btn btn-default' id='startGame' type='button'>Start</button>
+          </span>
+      </div>
+
+      <!-- Messages -->
+      <div id='playerOneMsg'></div>
+      <div id='playerTwoMsg'></div>
+    </div>
+  </div><br>
+
+  <!-- Player 1 panel -->
+  <div class='row'>
+    <div class='col-md-4'>
+      <div class='panel panel-primary'>
+        <div class='panel-heading'>
+          <h3 class='panel-title playerOneName'>Player 1</h3>
+        </div>
+        <div class='panel-body'>
+          <div id='playerOneOptions'></div>
+          <div id='playerOneChoice'></div>
+          <div id='playerOneProgress'></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Displays each players pick and who won the round -->
+    <div class='col-md-4'>
+      <div class='panel pnael-primary'>
+        <div class='panel-body' id='winner'></div>
+      </div>
+    </div>
+
+    <!-- Player 2 panel -->
+    <div class='col-md-4'>
+      <div class='panel panel-primary'>
+        <div class='panel-heading'>
+          <h3 class='panel-title playerTwoName'>Player 2</h3>
+        </div>
+        <div class='panel-body'></div>
+          <div id='playerTwoOptions'></div>
+          <div id='playerTwoChoice'></div>
+          <div id='playerTwoProgress'></div>
+        </div>
+      </div>
+
+      <!-- Chatbox -->
+      <div class='row'>
+        <div class='col-md-3'></div>
+        <div class='col-md-6'>
+          <div class='panel panel-default'>
+            <div class='panel-body chatbox'></div>
+          </div>
+
+          <!-- User input -->
+          <div class='input-group'>
+          <input type='text' class='form-control' id='userChat'>
+            <span class='input-group-btn'>
+              <button class='btn btn-default' id='sendChat' type='button'>Send</button>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<!-- Adds a link to the javascript file. Loaded at the bottom so it waits for the HTML content to display first.
+  If you put this at the top it will crash, because the HTML IDs won't exist yet.-->
+  <script src="assets/javascript/game.js"></script>
+</body>
+</html>

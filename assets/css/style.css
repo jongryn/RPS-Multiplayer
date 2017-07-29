@@ -1,0 +1,22 @@
+/*
+// Created: July 28, 2017; 4:25 PM
+// Author: Jonathan Gryn
+// Revisions: Jon (7/28/17) - Added style   
+*/
+
+* {
+  box-sizing: border-box;
+}
+body {
+  font-family: arial, times, serif;
+  font-size: 18px;
+
+  /*I need to put a background image*/
+  background url();
+}
+h1, h3 {
+  text-align: center;
+}
+.panel {
+  height: 200px;
+}
