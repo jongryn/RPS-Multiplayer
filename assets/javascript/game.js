@@ -70,14 +70,14 @@ var config = {
     });
 
   	// Grabbing name from user
-  	$("#startGame").on("click", function() {
+  	$('#startGame').on("click", function() {
   	  var name = $('#userName').val().trim();
 
   	  if(playerOneName == ''){
   	  	playerOneName = name;
   	  }
   	  else if(playerTwoName == ''){
-  	  	playerTwoname = name; 	
+  	  	playerTwoName = name; 	
   	  }
 
   	  // Store variables in Firebase

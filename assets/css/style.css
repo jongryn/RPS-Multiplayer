@@ -1,5 +1,5 @@
 /*
-// Created: July 28, 2017; 4:25 PM
+// Created: July 28, 2017 4:25 PM
 // Author: Jonathan Gryn
 // Revisions: Jon (7/28/17) - Added style   
 */
@@ -12,7 +12,7 @@ body {
   font-size: 18px;
 
   /*I need to put a background image*/
-  background url();
+  background: url(https://github.com/jongryn/RPS-Multiplayer/blob/master/assets/images/lined_paper-texture.jpg?raw=true);
 }
 h1, h3 {
   text-align: center;
