@@ -13,7 +13,9 @@ body {
   background-color: #e4f0d0;
 
   /*I need to put a background image*/
-  /*background: url(https://github.com/jongryn/RPS-Multiplayer/blob/master/assets/images/lined_paper-texture.jpg?raw=true);*/
+  background-image: url(https://github.com/jongryn/RPS-Multiplayer/blob/master/assets/images/zC0q6Ot.jpg?raw=true);
+  background-position: center;
+  background-size: cover;
 }
 header {
   /* Visual */
@@ -26,14 +28,23 @@ h1 {
   /* Typography */
   font-size: 36px;
   text-align: center;
+  color: yellow;
+  background-color: black;
 }
 h2 {
   /* Typography */
   font-size: 24px;
 }
+.h2, h2 {
+  color: white;
+}
+#player1-name, #player2-name, #player1-wins, #player2-wins, #player1-losses, #player2-losses {
+  color: white;
+}
 input {
   /* Visual */
   background-color: #fffcf7;
+  height: 35px;
 }
 #sizer {
   /* Box-model */
@@ -43,6 +54,13 @@ input {
   margin: 0 auto;
 }
 
+img {
+  height: 100px;
+}
+
+b, strong {
+  color: white;
+}
 /*******************
 
        SwapZone
@@ -199,11 +217,15 @@ li {
 }
 #chat-input {
   /* Box-model */
-  width: 550px;
+  width: 580px;
+  position: absolute;
+  top: -5px;
 }
 #chat-send {
   /* Box-model */
   width: 50px;
+  position: absolute;
+  top: 30px;
 }
 .player1 {
   /* Visual */
