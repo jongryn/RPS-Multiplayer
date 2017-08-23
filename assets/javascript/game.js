@@ -302,7 +302,7 @@ function getInGame() {
         });
 
         // Remove name input box and show current player number.
-        $("#swap-zone").html("<h2>Hi " + username + "! You are Player " + playerNum + "</h2>");
+        $("#swap-zone").html("<h2 style='color:white'>Hi " + username + "! You are Player " + playerNum + "</h2>");
     } else {
 
         // If current players is "2", will not allow the player to join
