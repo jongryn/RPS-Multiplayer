@@ -1,99 +1,92 @@
 <!-- Created: July 28, 2017 2:25 PM
 Author: Jonathan Gryn
 Revisions: Jon (7/28/17) - Added html
-		   Jon (7/29/17) - Added jQuery CDN-->
+		       Jon (7/29/17) - Added jQuery CDN
+           Jon (8/22/17) - Updated and fixed HTML -->
 
 <!DOCTYPE html>
-<html lan="US-en">
-<head>
-  <meta charset="UTF-8">
-  <title>Rock, Paper, Scissors - Multiplayer</title>
 
+<html lan="en-US">
+
+<head>
+
+  <meta charset="UTF-8">
+  <title>Star Wars: Multiplayer Rock, Paper, Shotgun</title>
+  
+  <!-- CSS reset sheet -->
   <link rel="stylesheet" type="text/css" href="assets/css/reset.css">
+
+  <!-- My CSS File -->
   <link rel="stylesheet" type="text/css" href="assets/css/style.css">
 
   <!-- Bootstrap is used to make game look nicer -->
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
 
-  <script src='https://code.jquery.com/jquery.js'></script>
+  <!-- <script src='https://code.jquery.com/jquery.js'></script> -->
 
- <!-- Firebase CDN -->
+ <!-- Firebase CDN/Link -->
  <script src="https://www.gstatic.com/firebasejs/4.2.0/firebase.js"></script>
 
 </head>
+
 <body>
-  <div class='row'>
-    <div class='col-md-3'></div>
-    <div class='col-md-6'>
-      <div class='input-group'>
-        <input type='text' class='form-control' id='userName' placeholder='name'>
-          <span class='input-group-btn'>
-            <button class='btn btn-default' id='startGame' type='button'>Start</button>
-          </span>
-      </div>
 
-      <!-- Messages -->
-      <div id='playerOneMsg'></div>
-      <div id='playerTwoMsg'></div>
+  <header>
+    <h1>Rock Paper Shotgun</h1>
+  </header>
+
+  <div id="sizer">
+
+    <div id="swap-zone"><input id="username" placeholder="Name"/>
+      <button id="start">Start</button>
     </div>
-  </div><br>
 
-  <!-- Player 1 panel -->
-  <div class='row'>
-    <div class='col-md-4'>
-      <div class='panel panel-primary'>
-        <div class='panel-heading'>
-          <h3 class='panel-title playerOneName'>Player 1</h3>
-        </div>
-        <div class='panel-body'>
-          <div id='playerOneOptions'></div>
-          <div id='playerOneChoice'></div>
-          <div id='playerOneProgress'></div>
-        </div>
+    <div id="current-turn"></div>
+
+    <div id="game-div">
+
+    <div id="player1">
+      <h3 id="player1-name">Player1</h3>
+      <ul>
+      </ul>
+      <div id="player1-chosen"></div>
+      <div class="outcomes">
+        <div class="outcome-trackers" id="player1-wins"></div>
+        <div class="outcome-trackers" id="player1-losses"></div>
       </div>
     </div>
 
-    <!-- Displays each players pick and who won the round -->
-    <div class='col-md-4'>
-      <div class='panel pnael-primary'>
-        <div class='panel-body' id='winner'></div>
+    <div id="result"></div>
+
+    <div id="player2">
+      <h3 id="player2-name">Player2</h3>
+      <ul>
+      </ul>
+      <div id="player2-chosen"></div>
+      <div class="outcomes">
+        <div class="outcome-trackers" id="player2-wins"></div>
+        <div class="outcome-trackers" id="player2-losses"></div>
       </div>
     </div>
 
-    <!-- Player 2 panel -->
-    <div class='col-md-4'>
-      <div class='panel panel-primary'>
-        <div class='panel-heading'>
-          <h3 class='panel-title playerTwoName'>Player 2</h3>
-        </div>
-        <div class='panel-body'></div>
-          <div id='playerTwoOptions'></div>
-          <div id='playerTwoChoice'></div>
-          <div id='playerTwoProgress'></div>
-        </div>
-      </div>
+  </div>
 
-      <!-- Chatbox -->
-      <div class='row'>
-        <div class='col-md-3'></div>
-        <div class='col-md-6'>
-          <div class='panel panel-default'>
-            <div class='panel-body chatbox'></div>
-          </div>
-
-          <!-- User input -->
-          <div class='input-group'>
-          <input type='text' class='form-control' id='userChat'>
-            <span class='input-group-btn'>
-              <button class='btn btn-default' id='sendChat' type='button'>Send</button>
-            </span>
-          </div>
-        </div>
-      </div>
+  <div id="chat">
+    <div id="chat-messages"></div>
+    <div id="chat-bar">
+      <input id="chat-input" />
+      <button id="chat-send">Send</button>
     </div>
+  </div>
 
-<!-- Adds a link to the javascript file. Loaded at the bottom so it waits for the HTML content to display first.
-  If you put this at the top it will crash, because the HTML IDs won't exist yet.-->
-  <script src="assets/javascript/game.js"></script>
+</div>
+
+<!-- jQuery -->
+<script   src="https://code.jquery.com/jquery-3.2.1.min.js"   integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="   crossorigin="anonymous"></script>
+
+<!-- Script -->
+<script src="assets/javascript/game.js"></script>
+
 </body>
+
 </html>
