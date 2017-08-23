@@ -162,7 +162,7 @@ playersRef.on("value", function(snapshot) {
     if (playerTwoExists) {
         $("#player2-name").text(playerTwoData.name);
         $("#player2-wins").text("Wins: " + playerTwoData.wins);
-        $("#player2-losses").text("Losses: " + plaeyrTwoData.losses);
+        $("#player2-losses").text("Losses: " + playerTwoData.losses);
     } else {
 
         // If no player 2, clear win/loss and show waiting
@@ -186,8 +186,8 @@ currentTurnRef.on("value", function(snapshot) {
 
             // If its the current player's turn, tell them and show choices
             if (currentTurn === playerNum) {
-                $("#current-turn").html("<h2>It's Your Turn!</h2>");
-                $("#player" + playerNum + " ul").append("<li>Rock</li><li>Paper</li><li>Scissors</li>");
+                $("#current-turn").html("<h2 style='color:white'>It's Your Turn!</h2>");
+                $("#player" + playerNum + " ul").append("<li style='color:white'>Rock</li><li style='color:white'>Paper</li><li style='color:white'>Scissors</li>");
             } else {
 
                 // If it isn't the curent palyer's turn, tell them they're waiting for player one
@@ -201,12 +201,12 @@ currentTurnRef.on("value", function(snapshot) {
 
             // If its the current palyer's turn, tell them and show choices
             if (currentTurn === playerNum) {
-                $("#current-turn").html("<h2>It's Your Turn!</h2>");
-                $("#player" + playerNum + " ul").append("<li>Rock</li><li>Paper</li><li>Shotgun</li>");
+                $("#current-turn").html("<h2 style='color:white'>It's Your Turn!</h2>");
+                $("#player" + playerNum + " ul").append("<li style='color:white'>Rock</li><li style='color:white'>Paper</li><li style='color:white'>Shotgun</li>");
             } else {
 
                 // If it isn't the current player's turn, tells them they're waiting for player two
-                $("#current-turn").html("<h2>Waiting for " + playerOneData.name + " to choose.</h2>");
+                $("#current-turn").html("<h2 style='color:white'>Waiting for " + playerOneData.name + " to choose.</h2>");
             }
 
             // Shows yellow border around active player
@@ -219,7 +219,7 @@ currentTurnRef.on("value", function(snapshot) {
             gameLogic(playerOneData.choice, playerTwoData.choice);
 
             // reveal both player choices
-            $("#player1-chosen").html(palyerOneData.choice);
+            $("#player1-chosen").html(playerOneData.choice);
             $("#player2-chosen").html(playerTwoData.choice);
 
             // reset after timeout
@@ -244,7 +244,7 @@ currentTurnRef.on("value", function(snapshot) {
             // }
             $("#player1 ul").empty();
             $("#player2 ul").empty();
-            $("#current-turn").html("<h2>Waiting for another player to join.</h2>");
+            $("#current-turn").html("<h2 style='color:white'>Waiting for another player to join.</h2>");
             $("#player2").css("border", "1px solid black");
             $("#player1").css("border", "1px solid black");
         }
@@ -315,7 +315,7 @@ function getInGame() {
 function gameLogic(player1choice, player2choice) {
 
     var playerOneWon = function() {
-        $("#result").html("<h2>" + playerOneData.name + "</h2><h2>Wins!</h2>");
+        $("#result").html("<h2 style='color:white'>" + playerOneData.name + "</h2><h2 style='color:white'>Wins!</h2>");
         if (playerNum === 1) {
             playersRef.child("1").child("wins").set(playerOneData.wins + 1);
             playersRef.child("2").child("losses").set(playerTwoData.losses + 1);
@@ -323,7 +323,7 @@ function gameLogic(player1choice, player2choice) {
     };
 
     var playerTwoWon = function() {
-        $("#result").html("<h2>" + playerTwoData.name + "</h2><h2>Wins!</h2>");
+        $("#result").html("<h2 style='color:white'>" + playerTwoData.name + "</h2><h2 style='color:white'>Wins!</h2>");
         if (playerNum === 2) {
             playersRef.child("2").child("wins").set(playerTwoData.wins + 1);
             playersRef.child("1").child("losses").set(playerOneData.losses + 1);
@@ -331,7 +331,7 @@ function gameLogic(player1choice, player2choice) {
     };
 
     var tie = function() {
-        $("#result").html("<h2>Tie Game!</h2>");
+        $("#result").html("<h2 style='color:white'>Tie Game!</h2>");
     };
 
     if (player1choice === "Rock" && player2choice === "Rock") {
