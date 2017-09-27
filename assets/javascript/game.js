@@ -4,579 +4,397 @@
 // Revisions: Jon (7/28/17) - Added JS
 // 			      Jon (7/29/17) - Added jQuery CDN but can't get Firebase to work properly
 //            Jon (8/22/17) - Adjusted logic to fit properly with Firebase
+//            Jon (9/25/17) - Fixed JS to have RPS work instead of just chatbox
 */
 
-// Initialize Firebase
-var config = {
-    apiKey: "AIzaSyCiOUmAHS0GyHKEsSNg8xdp6BILZq9ol1s",
-    authDomain: "rps-multiplayer-c2186.firebaseapp.com",
-    databaseURL: "https://rps-multiplayer-c2186.firebaseio.com",
-    projectId: "rps-multiplayer-c2186",
-    storageBucket: "rps-multiplayer-c2186.appspot.com",
-    messagingSenderId: "732971795077"
-};
+/*
+//
+// Global Variables
+//
+*/
 
-firebase.initializeApp(config);
+// Store the objects for each of the two placers
+var player1 = null;
+var player2 = null;
 
+// Store the player names
+var player1Name = "";
+var player2Name = "";
+
+// Store the name of the player in the user's browser
+var yourPlayerName = "";
+
+// Store the player choicesvar player1Choice = "";
+var player1Choice = "";
+var player2Choice = "";
+
+// WHo's turn is it
+var turn = 1;
+
+/*
+//
+// Firebase Database Section
+//
+*/
+
+// Get a reference to the database service
 var database = firebase.database();
 
-var chatData = database.ref("/chat");
-var playersRef = database.ref("players");
-var currentTurnRef = database.ref("turn");
-var username = "Guest";
-var currentPlayers = null;
-var currentTurn = null;
-var playerNum = false;
-var palyerOneExists = false;
-var playerTwoExists = false;
-var playerOneData = null;
-var playerTwoData = null;
+// Attach a listener to the database /players/ node to listen for any chanages
+database.ref("/players/").on("value", function(snapshot) {
 
-// USERNAME LISTENERS
-// Start button - takes username and tries to get user in game
-$("#start").click(function() {
-    if ($("#username").val() !== "") {
-        username = capitalize($("#username").val());
-        getInGame();
-    }
+  // Check for existence of palyer 1 in the database
+  if (snapshot.child("player1").exists()) {
+    console.log("Player 1 exists");
+
+    // Record player1 database
+    player1 = snapshot.val().player1;
+    player1Name = player1.name;
+
+    // Update player1 display
+    $("#playerOneName").text(player1Name);
+    $("#player1Stats").html("Win: " + player1.win + ", Loss; " + player1.loss + ", Tie: " + player1.tie);
+  } else {
+    console.log("Player 1 does NOT exist");
+
+    player1 = null;
+    player1Name = "";
+
+    // Update player1 display
+    $("#playerOneName").text("Waiting for Player 1...");
+    $("#playerPanel1").removeClass("playerPanelTurn");
+    $("#playerPanel2").removeClass("playerPanelTurn");
+    database.ref("/outcome/").remove();
+    $("#waitingNotice").html("");
+    $("#player1Stats").html("Win: 0, Loss: 0, Tie: 0");
+  }
+
+  // Check for existence of player 2 in the database
+  if (snapshot.child("player2").exists()) {
+    console.log("Player 2 exists");
+
+    // Record player2 database
+    player2 = snapshot.val().player2;
+    player2Name = player2.name;
+
+    // Update player2 display
+    $("#playerTwoName").text(player2Name);
+    $("#player2Stats").html("Win: " + player2.win + ", Loss: " + player2.loss + ", Tie: " + player2.tie);
+  } else {
+    console.log("Player 2 does NOT exist");
+
+    player2 = null;
+    player2Name = "";
+
+    // Update player2 display
+    $("#playerTwoName").text("Waiting for Player 2...");
+    $("#playerPanel1").removeClass("playerPanelTurn");
+    $("#playerPanel2").removeClass("playerPanelTurn");
+    database.ref("/outcome/").remove();
+    $("#roundOutcome").html("Rock-Papaer-Shotgun");
+    $("#waitingNotice").html("");
+    $("#player2Stats").html("Win: 0, Loss: 0, Tie: 0");
+  }
+
+  // If both players are now present, it's player1's turn
+  if (player1 && player2) {
+
+    // Update the display with a green border around player 1
+    $("#playerPanel1").addClass("playerPanelTurn");
+
+    // Update the center display
+    $("#waitingNotice").html("Waiting on " + player1Name + " to choose...");
+  }
+
+  // If both players leave the game, empty the chat session
+  if (!player1 && !player2) {
+    database.ref("/chat/").remove();
+    database.ref("/turn/").remove();
+    database.ref("/outcome/").remove();
+
+    $("#chatDisplay").empty();
+    $("#playerPanel1").removeClass("playerPanelTurn");
+    $("#playerPanel2").removeClass("playerPanelTurn");
+    $("#roundOutcome").html("Rock-Papaer-Shotgun");
+    $("#waitingNotice").html("");
+  }
 });
 
-// listener for 'enter' in username input
-$("#username").keypress(function(e) {
-    if (e.keyCode === 13 && $("#username").val() !== "") {
-        username = capitlize($("#username").val());
-        getInGame();
-    }
+// Attach a listener that detects user disconnection events
+database.ref("/players/").on("child_removed", function(snapshot) {
+  var msg = snapshot.val().name + " has disconnected!";
+
+  // Get a key for the disconnection chat entry
+  var chatKey = database.ref().child("/chat/").push().key;
+
+  // Save the disconnection chat entry
+  database.ref("/chat/" + chatKey).set(msg);
 });
 
-// Function to capitalize usernames
-function capitalize(name) {
-    return name.charAt(0).toUpperCase() + name.slice(1);
+// Attach a listener to the database /chat/ node to listen for any new chat message
+database.ref("/chat/").on("child_added", function(snapshot) {
+  var chatMsg = snapshot.val();
+  var chatEntry = $("<div>").html(chatMsg);
+
+  // Change the color of the chat message depending on user or connect/disconnect events
+  if (chatMsg.includes("disconnected")) {
+    chatEntry.addClass("chatColorDisconnected");
+  } else if (chatMsg.includes("joined")) {
+    chatEntry.addClass("chatColorJoined");
+  } else if (chatMsg.startsWith(yourPlayerName)) {
+    chatEntry.addClass("chatColor1");
+  } else {
+    chatEntry.addClass("chatColor2");
+  }
+
+  $("#chatDisplay").append(chatEntry);
+  $("#chatDisplay").scrollTop($("#chatDisplay")[0].scrollHeight);
+});
+
+// Attach a listener to the database /turn/ node to listen for any changes
+database.ref("/turn/").on("value", function(snapshot) {
+
+  // Check if it's player1's turn
+  if (snapshot.val() === 1) {
+    console.log("TURN 1");
+    turn = 1;
+
+    // Update the display if both players are in the game
+    if (player1 && player2) {
+      $("#playerPanel1").addClass("playerPanelTurn");
+      $("#playerPanel2").removeClass("playerPanelTurn");
+      $("waitingNotice").html("Waiting on " + player1Name + " to choose...");
+    }
+  } else if (snapshot.val() === 2) {
+    console.log("TURN 2");
+    turn = 2;
+
+    // Update the display if both players are in teh game
+    if (player1 && player2) {
+      $("#playerPanel1").removeClass("playerPanelTurn");
+      $("#playerPanel2").addClass("playerPanelTurn");
+      $("#waitingNotice").html("Waiting on " + player2Name + " to choose...");
+    }
+  }
+});
+
+// Attach a listener to the database /outcome/ node to be notified of the game outcome
+database.ref("/outcome/").on("value", function(snapshot) {
+  $("#roundOutcome").html(snapshot.val());
+});
+
+/*
+//
+// Button Events Section
+//
+*/
+
+// Attach an event handler to the "Submit" button to add a new user to the database
+$("#add-name").on("click", function(event) {
+  event.preventDefault();
+
+  // First, make sure that the name field is non-empty and we are still waiting for a player
+  if ( ($("#name-input").val().trim() !== "") && !(player1 && player2) ) {
+
+    // Adding player1
+    if (player1 === null) {
+      console.log("Adding Player 1");
+
+      yourPlayerName = $("#name-input").val().trim();
+      player1 = {
+        name: yourPlayerName,
+        win: 0,
+        loss: 0,
+        tie: 0,
+        choice: ""
+      };
+
+      // Add player1 to the database
+      database.ref().child("/players/player1").set(player1);
+
+      // Set the turn value to 1, as player1 goes First
+      database.ref().child("/turn").set(1);
+
+      // If this user disconnects by closing or refreshing the browser, remove the user from the database
+      database.ref("/players/player1").onDisconnect().remove();
+    } else if( (player1 !== null) && (player2 === null) ) {
+
+      // Adding player2
+      console.log("Adding Player 2");
+
+      yourPlayerName = $("#name-input").val().trim();
+      player2 = {
+        name: yourPlayerName,
+        win: 0,
+        loss: 0,
+        tie: 0,
+        choice: ""
+      };
+
+      // Add player2 to the database
+      database.ref().child("/players/player2").set(player2);
+
+      // If this user disconnects by closing or refreshing the browser, remove the user from the database
+      database.ref("/players/players2").onDisconnect().remove();
+    }
+
+    // Add a user joining message to the chat
+    var msg = yourPlayerName + " has joined!";
+    console.log(msg);
+
+    // Get a key fo rthe join chat entry
+    var chatKey = database.ref().child("/chat/").push().key;
+
+    // Save the join chat entry
+    database.ref("/chat/" + chatKey).set(msg);
+
+    // Reset the name input box-sizing
+    $("#name-input").val("");
+
+  }
+});
+
+// Attach an event handler to the chat "Send" button to append the new message to the conversation
+$("#chat-send").on("click", function(event) {
+  event.preventDefault();
+
+  // First, make sure that the player exists and the message box is non-empty
+  if ( (yourPlayerName !== "") && ($("#chat-input").val().trim() !== "") ) {
+
+    // Grab the message from the input box and subsequently reset the input box
+    var msg = yourPlayerName + ": " + $("#chat-input").val().trim();
+    $("#chat-input").val("");
+
+    // Get a key for the new chat entry
+    var chatKey = database.ref().child("/chat/").push().key;
+
+    // Save the new chat entry
+    database.ref("/chat/" + chatKey).set(msg);
+  }
+});
+
+// Monitor Player1's selection
+$("#playerPanel1").on("click", ".panelOption", function(event) {
+  event.preventDefault();
+
+  // Make selections only when both players are in the game
+  if (player1 && player2 && (yourPlayerName === player1.name) && (turn === 1) ) {
+
+    // Record player1's choice
+    var choice = $(this).text().trim();
+
+    // Record the player choice into the database
+    player1Choice = choice;
+    database.ref().child("/players/player1/choice").set(choice);
+
+    // Set the turn value to 2, as it is now player2's turn
+    turn = 2;
+    database.ref().child("/turn").set(2);
+  }
+});
+
+// Monitor Player2's selections
+$("#playerPanel2").on("click", ".panelOption", function(event) {
+  event.preventDefault();
+
+  // Make selections only when both players are in the game
+  if (player1 && player2 && (yourPlayerName === player2.name) && (turn === 2) ) {
+
+    // Record player2's choice
+    var choice = $(this).text().trim();
+
+    // Record the player choice into the database
+    player2Choice = choice;
+    database.ref().child("/players/player2/choice").set(choice);
+
+    // Compare player1 and player 2 choices and record the outcome
+    rpsCompare();
+  }
+});
+
+// rpsCompare is the main rock/paper/shotgun logic to see which player wins
+function rpsCompare() {
+  if (player1.choice === "Rock") {
+    if (player2.choice === "Rock") {
+
+      // Tie
+      console.log("tie");
+
+      database.ref().child("/outcome/").set("Tie game!");
+      database.ref().child("/players/player1/tie").set(player1.tie + 1);
+      database.ref().child("/players/player2/tie").set(player2.tie + 1);
+    } else (player2.choice === "Paper") {
+
+      // Player2 wins
+      console.log("paper wins");
+
+      database.ref().child("outcome").set("Paper wins!");
+      database.ref().child("/players/player1/loss").set(player1.loss + 1);
+      database.ref().child("/players/player2/win").set(player2.win + 1);
+    } else { // Shotgun
+
+      // player1 wins
+      console.log("rock wins!");
+
+      database.ref().child("/outcome/").set("Rock wins!");
+      database.ref().child("/players/player1/win").set(player1.win + 1);
+      database.ref().child("/players/player2/loss").set(player2.loss + 1);
+    }
+  } else if (player1.choice === "Paper") {
+    if (player2.choice === "Rock") {
+
+      // Player1 wins
+      console.log("paper wins!");
+
+      database.ref().child("/outcome/").set("Paper wins!");
+      database.ref().child("/players/player1/win").set(player1.win + 1);
+      database.ref().child("/players/player2/loss").set(player2.loss + 1);
+    } else if (player2.choice === "Paper") {
+
+      // Tie
+      console.log("tie");
+
+      database.ref().child("/outcome/").set("Tie game!");
+      database.ref().child("/players/player1/tie").set(player1.tie + 1);
+      database.ref().child("/players/player2/tie").set(player2.tie + 1);
+    } else { // Shotgun
+
+      // Player2 wins
+      console.log("shotgun wins");
+
+      database.ref().child("/outcome/").set("Shotgun wins!");
+      database.ref().child("/players/player1/loss").set(player1.loss + 1);
+      database.ref().child("/players/player2/win").set(player2.win + 1);}
+  }
+} else if (player1.choice === "Shotgun") {
+  if (player2.choice === "Rock") {
+
+    // Player2 wins
+    console.log("rock wins");
+
+    database.ref().child("/outcome/").set("Rock wins!");
+    database.ref().child("/players/player1/loss").set(player1.loss + 1);
+    database.ref().child("/players/player2/win").set(player2.win + 1);
+  } else if (player2.choice === "Paper") {
+
+    // Player1 wins
+    console.log("shotgun wins");
+
+    database.ref().child("outcome/").set("Shotgun wins!");
+    database.ref().child("/players/player1/win").set(player1.win + 1);
+    database.ref().child("/players/player2/loss").set(player2.loss + 1);
+  } else {
+
+    // Tie
+    console.log("tie");
+
+    database.ref().child("/outcome/").set("Tie game!");
+    database.ref().child("/players/player1/tie").set(player1.tie + 1);
+    database.ref().child("/players/player2/tie").set(player2.tie + 1);
+  }
 }
 
-// CHAT LISTENERS
-// Chat send button listener, grabs input and pushes to firebase (Firebase's push automatically creates a unique key)
-$("#chat-send").click(function() {
-
-    if ($("#chat-input").val() !== "") {
-
-        var message = $("#chat-input").val();
-
-        chatData.push({
-            name: username,
-            message: message,
-            time: firebase.database.ServerValue.TIMESTAMP,
-            idNum: playerNum
-        });
-
-        $("#chat-input").val("");
-    }
-});
-
-// Chatbox input listener
-
-$("#chat-input").keypress(function(e) {
-
-    if (e.keyCode === 13 && $("#chat-input").val() !== "") {
-        var message = $("#chat-input").val();
-
-        chatData.push({
-            name: username,
-            message: message,
-            time: firebase.database.ServerValue.TIMESTAMP,
-            idNum: playerNum
-        });
-
-        $("#chat-input").val("");
-    }
-});
-
-// Click event for dynamically added <li> elements
-$(document).on("click", "li", function() {
-
-    console.log("click");
-
-    // Grabs text from li choice
-    var clickChoice = $(this).text();
-    console.log(playerRef);
-
-    // Sets the choice in the current palyer object in firebase
-    playerRef.child("choice").set(clickChoice);
-
-    // User has chosen, so removes choices and displays what they chose
-    $("#player" + playerNum + " ul").empty();
-    $("#player" + playerNum + "chosen").html(clickChoice);
-
-    // Increments turn. Turn goes from:
-    // 1 - player 1
-    // 2 - player 2
-    // 3 - determine winner
-    currentTurnRef.transaction(function(turn) {
-        return turn + 1;
-    });
-});
-
-// Update chat on screen when new message detected - ordered by 'time' value
-chatData.orderByChild("time").on("child_added", function(snapshot) {
-
-    // If idNum is 0, then its a disconnect message and displays accordingly
-    // If not - its a user chat message
-    if (snapshot.val().idNum === 0) {
-        $("#chat-messages").append("<p class=player" + snapshot.val().idNum + "><span>" + snapshot.val().name + "</span>: " + snapshot.val().message + "</p>");
-    } else {
-        $("#chat-messages").append("<p class=player" + snapshot.val().idNum + "><span>" + snapshot.val().name + "</span>: " + snapshot.val().message + "</p>");
-    }
-
-    // Keeps div scrolled to bottom on each update.
-    $("#chat-messages").scrollTop($("#chat-messages")[0].scrollHeight);
-});
-
-// Tracks changes in key which contains player objects
-playersRef.on("value", function(snapshot) {
-
-    // length of the 'players' array
-    currentPlayers = snapshot.numChildren();
-
-    // Check to see if palyers exist
-    playerOneExists = snapshot.child("1").exists();
-    playerTwoExists = snapshot.child("2").exists();
-
-    // Player data objects
-    playerOneData = snapshot.child("1").val();
-    playerTwoData = snapshot.child("2").val();
-
-    // If theres a player 1, fill in name and win loss data
-    if (playerOneExists) {
-        $("#player1-name").text(playerOneData.name);
-        $("#player1-wins").text("Wins: " + playerOneData.wins);
-        $("#player1-losses").text("Losses: " + playerOneData.losses);
-    } else {
-
-        // If there is no player 1, clear win/loss data and show waiting
-        $("#player1-name").text("Waiting for Player 1");
-        $("#player1-wins").empty();
-        $("#player1-losses").empty();
-    }
-
-    // If theres a player 2, fill in name and win/loss data
-    if (playerTwoExists) {
-        $("#player2-name").text(playerTwoData.name);
-        $("#player2-wins").text("Wins: " + playerTwoData.wins);
-        $("#player2-losses").text("Losses: " + playerTwoData.losses);
-    } else {
-
-        // If no player 2, clear win/loss and show waiting
-        $("#player2-name").text("Waiting for Player 2");
-        $("#player2-wins").empty();
-        $("#player2-losses").empty();
-    }
-});
-
-// Detects changes in current turn key
-currentTurnRef.on("value", function(snapshot) {
-
-    // Gets current turn from snapshot
-    currentTurn = snapshot.val();
-
-    // Don't do the following unless you're logged in
-    if (playerNum) {
-
-        // For turn 1
-        if (currentTurn === 1) {
-
-            // If its the current player's turn, tell them and show choices
-            if (currentTurn === playerNum) {
-                $("#current-turn").html("<h2 style='color:white'>It's Your Turn!</h2>");
-                $("#player" + playerNum + " ul").append("<li style='color:white'>Rock</li><li style='color:white'>Paper</li><li style='color:white'>Scissors</li>");
-            } else {
-
-                // If it isn't the curent palyer's turn, tell them they're waiting for player one
-                $("#current-turn").html("<h2>Waiting for " + playerOneData.name + " to choose.</h2>");
-            }
-
-            // Shows yellow border around active player
-            $("#player1").css("border", "2px solid yellow");
-            $("#player2").css("border", "1px solid black");
-        } else if (currentTurn === 2) {
-
-            // If its the current palyer's turn, tell them and show choices
-            if (currentTurn === playerNum) {
-                $("#current-turn").html("<h2 style='color:white'>It's Your Turn!</h2>");
-                $("#player" + playerNum + " ul").append("<li style='color:white'>Rock</li><li style='color:white'>Paper</li><li style='color:white'>Shotgun</li>");
-            } else {
-
-                // If it isn't the current player's turn, tells them they're waiting for player two
-                $("#current-turn").html("<h2 style='color:white'>Waiting for " + playerOneData.name + " to choose.</h2>");
-            }
-
-            // Shows yellow border around active player
-            $("#player2").css("border", "2px solid yellow");
-            $("#player1").css("border", "1px solid black");
-
-        } else if (currentTurn === 3) {
-
-            // Where the game win logic takes place then resets to turn 1
-            gameLogic(playerOneData.choice, playerTwoData.choice);
-
-            // reveal both player choices
-            $("#player1-chosen").html(playerOneData.choice);
-            $("#player2-chosen").html(playerTwoData.choice);
-
-            // reset after timeout
-            var moveOn = function() {
-
-                $("#player1-chosen").empty();
-                $("#player2-chosen").empty();
-                $("#result").empty();
-
-                // check to make sure players didn't leave before timeout
-                if (playerOneExists && playerTwoExists) {
-                    currentTurnRef.set(1);
-                }
-            };
-
-            // show results for 2 seconds, then resets
-            setTimeout(moveOn, 2000);
-        } else {
-
-            // if (playerNum) {
-            //   $("#player" + playerNum + " ul").empty();
-            // }
-            $("#player1 ul").empty();
-            $("#player2 ul").empty();
-            $("#current-turn").html("<h2 style='color:white'>Waiting for another player to join.</h2>");
-            $("#player2").css("border", "1px solid black");
-            $("#player1").css("border", "1px solid black");
-        }
-    }
-});
-
-// When a player joins, check to see if there are two players now. If yes, then it will start the game.
-playersRef.on("child_added", function(snapshot) {
-
-    if (currentPlayers === 1) {
-
-        // set turn to 1, which starts the game
-        currentTurnRef.set(1);
-    }
-});
-
-// Function to get in the game
-function getInGame() {
-
-    // For adding disconnects to the chat with a unique id (the data/time the user entered the game)
-    // Needed because Firebase's '.push()' creates its unique keys client side,
-    // so you can't ".push()" in a ".onDisconnect"
-    var chatDataDisc = database.ref("/chat/" + Date.now());
-
-    // Checks for current players, if theres a player one connected, then the user becomes player 2.
-    // If there is no player one, then the user becomes player 1
-    if (currentPlayers < 2) {
-
-        if (playerOneExists) {
-            playerNum = 2;
-        } else {
-            playerNum = 1;
-        }
-
-        // Creates key based on assigned palyer number
-        playerRef = database.ref("/players/" + playerNum);
-
-        // Creates player object. 'choice' is unnecessary here, but I left it in to be as complete as possible
-        playerRef.set({
-            name: username,
-            wins: 0,
-            losses: 0,
-            choice: null
-        });
-
-        // On disconnect remove this user's player object
-        playerRef.onDisconnect().remove();
-
-        // Send disconnect message to chat with Firebase server generated timestamp and id '0' to denote system message
-        chatDataDisc.onDisconnect().set({
-            name: username,
-            time: firebase.database.ServerValue.TIMESTAMP,
-            message: "has disconnected",
-            idNum: 0
-        });
-
-        // Remove name input box and show current player number.
-        $("#swap-zone").html("<h2 style='color:white'>Hi " + username + "! You are Player " + playerNum + "</h2>");
-    } else {
-
-        // If current players is "2", will not allow the player to join
-        alert("Sorry, Game Full! Try Again Later!");
-    }
+// Set the turn value to 1, as it is now player1's turn
+turn = 1;
+database.ref().child("/turn").set(1);
 }
-
-// Game logic - Tried to space this out and make it more readable. Displays who won, lost or tie game inresult div.
-// Increments wins or losses accordingly.
-function gameLogic(player1choice, player2choice) {
-
-    var playerOneWon = function() {
-        $("#result").html("<h2 style='color:white'>" + playerOneData.name + "</h2><h2 style='color:white'>Wins!</h2>");
-        if (playerNum === 1) {
-            playersRef.child("1").child("wins").set(playerOneData.wins + 1);
-            playersRef.child("2").child("losses").set(playerTwoData.losses + 1);
-        }
-    };
-
-    var playerTwoWon = function() {
-        $("#result").html("<h2 style='color:white'>" + playerTwoData.name + "</h2><h2 style='color:white'>Wins!</h2>");
-        if (playerNum === 2) {
-            playersRef.child("2").child("wins").set(playerTwoData.wins + 1);
-            playersRef.child("1").child("losses").set(playerOneData.losses + 1);
-        }
-    };
-
-    var tie = function() {
-        $("#result").html("<h2 style='color:white'>Tie Game!</h2>");
-    };
-
-    if (player1choice === "Rock" && player2choice === "Rock") {
-        tie();
-    } else if (player1choice === "Paper" && player2choice === "Paper") {
-        tie();
-    } else if (player1choice === "Shotgun" && player2choice === "Shotgun") {
-        tie();
-    } else if (player1choice === "Rock" && player2choice === "Paper") {
-        playerTwoWon();
-    } else if (player1choice === "Rock" && player2choice === "Shotgun") {
-        playerOneWon();
-    } else if (player1choice === "Paper" && player2choice === "Rock") {
-        playerOneWon();
-    } else if (player1choice === "Paper" && player2choice === "Shotgun") {
-        playerTwoWon();
-    } else if (player1choice === "Shotgun" && player2choice === "Rock") {
-        playerTwoWon();
-    } else if (player1choice === "Shotgun" && player2choice === "Paper") {
-        playerOneWOn();
-    }
-}
-
-
-// var playerOneWins = 0;
-// var playerOneLoss = 0;
-// var playerOneName = '';
-// var playerOneChoice = '';
-// var playerTwoWins = 0;
-// var playerTwoLoss = 0;
-// var playerTwoName = '';
-// var playerTwoChoice = '';
-// var checkForWinner = false;
-// var turn; 
-// var rps = ['Rock', 'Paper', 'Scissors'];
-// var readyPlay = false;
-// var playersConnected = 0;
-
-// // Connection
-// var connectionsRef = database.ref("/connections");
-// var connectedRef = database.ref(".info/connected");
-
-// connectedRef.on("value", function(snap) {
-
-// 	// If they are connected
-// 	if(snap.val()){
-
-// 	  // Add user to connections list.
-// 	  var here = connectionsRef.push(true);
-
-// 	  // Remove user from connection list when they disconnect.
-// 	  here.onDisconnect().remove();
-
-// 	};
-// });
-
-// connectionsRef.on("value", function(snap) {
-// 	playersConnected = (snap.numChildren());
-// 	console.log(playersConnected);
-// });
-
-// // Updates Firebase
-// database.ref().on("value", function(snapshot) {
-// 	if((snapshot.child('oneName').exists) && (snapshot.child('twoName').exists)){
-// 	  $('.playerOneName').html((snapshot.val().player.one.oneName));
-// 	  $('.playerTwoName').html((snapshot.val().player.two.twoName));
-// 	}
-
-// 	$('#playerOneProgress').html('Wins: ' + (snapshot.val().player.one.wins) + ' Loss: ' + (snapshot.val().player.one.loss) );
-// 	$('#playerTwoProgress').html('Wins: ' + (snapshot.val().player.two.wins) + ' Loss: ' + (snapshot.val().player.two.loss) )
-
-// 	// If any errors are experienced, log them to console.
-//   }, function (errorObject) {
-
-//   	console.log("The read failed: " + errorObject.code);
-//   });
-
-// 	// Grabbing name from user
-// 	$('#startGame').on("click", function() {
-// 	  var name = $('#userName').val().trim();
-
-// 	  if(playerOneName == ''){
-// 	  	playerOneName = name;
-// 	  }
-// 	  else if(playerTwoName == ''){
-// 	  	playerTwoName = name; 	
-// 	  }
-
-// 	  // Store variables in Firebase
-// 	  database.ref().set({
-// 	    player:{
-// 	      one:{
-// 	        oneName: playerOneName,
-// 	        wins: playerOneWins,
-// 	        loss: playerOneLoss,
-// 	    },
-// 	    two:{
-// 	      twoName: playerTwoName,
-// 	      wins: playerTwoWins,
-// 	      loss: playerTwoLoss,
-// 	    }
-// 	  },
-// 	  turn: turn
-//   }); 
-
-// 	if ((playerOneName != '') && (playerTwoName != '')){
-// 	  turn = 1;
-// 	  readyPlay = true;
-// 	}
-
-// });
-
-//   if(playersConnected == 2){
-
-//     //displays only to player one
-//     database.ref().limitToFirst(1).on("child_added", function(snapshot) {
-//       if(turn === 1){
-//         $('#playerOneMsg').html(playerOneName + ", It's your turn!");
-
-//         for(var i=0; i<rps.length;i++){
-//         	var choice = $('<div>');
-//         	choices.attr('data-choice', rps[i]);
-//         	choices.addClass(rockPScissors);
-//         	choices.text(rps[i]);
-//         	$('#playerOneOptions').append(choices);
-//         }
-//       } else if(turn === 2){
-//         $('#playerOneMsg').html('Waiting for ' + playerTwoName);
-//       }
-//     });
-
-//     // Displays only to player two
-//     database.ref().limitToLast(1).on("chilld_added", function(snapshot) {
-//       if(turn === 2){
-//         $('#playerTwoMsg').html(playerTwoName + ", it's your turn!");
-
-//         for(var i=0; i<rps.length; i++){
-//         	var choices = $('<div>');
-//         	choices.attr('data-choice', rps[i]);
-//         	choices.addClass(rockPS);
-//         	choices.ext(rps[i]);
-//         	$('#playerTwoOptions').append(choices);
-//         }
-//       } else if (turn === 1){
-//         $('#playerTwoOptions').html('Waiting for ' + playerOneName);
-//       }
-//     });
-//   }
-
-//   // When player one chooses
-//   $('.rockPScissors').on('click', function(){
-//     playerOneChoice = $(this).data('choice');
-//     $('#playerOneOptions').empty();
-
-//     database.ref().limitToFirst(1).on("child_added", function(snapshot){
-//       $('#playerOneChoice').html(playerOneChoice);
-//     });
-
-//     turn = 2;
-//   });
-
-//   // When player two chooses
-//   $('.rockPS').on('click', function(){
-//     playerTwoChoice = $(this).data('choice');
-//     $('#playerTwoChoice').empty();
-
-//     database.ref().limitToFirst(1).on("child_added", function(snapshot){
-//     	$('#playerTwoChoice').html(playerTwoChoice);
-//     });
-
-//     turn = 1;
-//     checkForWinner = true;
-//   });
-
-//   // Checks winner
-//   function whoWon(){
-
-//     // Displays both players' choices
-//     $('#playerOneChoice').html();
-//     $('#playerTwoChoice').html();
-
-//     if(playerOneChoice == playerTwoChoice){
-//     	$('#winner').html("it's a tie!");
-//     } 
-//     else if ((playerOneChoice == 'Rock') && (playerTwoChoice == 'Paper')){
-//     	$('#winner').html(playerTwoName + ' wins!');
-//     	playerOneLoss++;
-//     	playerTwoWins++;
-//     } 
-//     else if ((playerOneChoice == 'Rock') && (playerTwoChoice == 'Scissors')){
-//     	$('#winner').html(playerOneName + ' wins!');
-//     	playerOneWins++;
-//     	playerTwoLoss++;
-//     }
-//     else if ((playerOneChoice == 'Scissors') && (playerTwoChoice == 'Paper')){
-//     	$('#winner').html(playerOneName + ' wins!');
-//     	playerOneWins++;
-//     	playerTwoLoss++;
-//     }
-//     else if ((playerOneChoice == 'Scissors') && (playerTwoChoice == 'Rock')){
-//     	$('#winner').html(playerTwoName + ' wins!');
-//     	playerOneLoss++;
-//     	playerTwoWins++;
-//     }
-//     else if ((playerOneChoice == 'Paper') && (playerTwoChoice == 'Scissors')){
-//     	$('#winner').html(playerTwoName + ' wins!');
-//     	playerOneLoss++;
-//     	playerTwoWins++;
-//     }
-//     else if ((playerOneChoice == 'Paper') && (playerTwoChoice == 'Rock')){
-//       $('#winner').html(playerOneName + ' wins!');
-//       playerOneWins++;
-//       playerTwoLoss++;
-//     }
-
-//     // Updates Firebase
-//     database.ref().set({
-//     	player:{
-//     		one:{
-//     	  wins: playerOneWins,
-//     	  loss: playerOneLoss,
-//     	  },
-//     	  two:{
-//     	  wins: playerTwoWins,
-//     	  loss: playerTwoLoss,
-//     	}
-//     }
-//   });
-// }
-
-// // Chatbox
-// $("#sendChat").on("click", function() {
-// 	var chatComment = $('#userChat').val().trim();
-// 	var chat = $('<div>');
-// 	// If input came from playerOne
-// 	  // chatComment.prepend(playerOneName + ': ');
-
-// 	// Else if input came from playerTwo
-// 	  // chatComment.prepend(playerTwoName + ':')
-// 	  chat.append(chatComment);
-// 	$('.chatbox').append(chat);
-
-// });
-
-// // Sends to whoWon function after both players have chosen
-// if (checkForWinner == true){
-// 	whoWon();
-// }
