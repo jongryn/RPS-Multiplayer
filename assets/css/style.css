@@ -7,7 +7,7 @@
 */
 
 body {
-  background: url('../images/rps_background.png');
+  /*background: url('../images/rps_background.png');*/
   background-repeat: repeat;
 }
 
@@ -97,7 +97,7 @@ body {
 
 .playerPanel .panelOption {
   height: 50px;
-  background-color: #efd5d7;
+  background-color: #b03138;
   text-align: center;
   font-weight: normal;
   font-size: 1.5em;
