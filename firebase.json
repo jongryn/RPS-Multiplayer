@@ -2,5 +2,25 @@
   "rules": {
     ".read": true,
     ".write": true
+  },
+  "database": {
+    "rules": {
+      ".read": true,
+      ".write": true
+    }
+  },
+  "hosting": {
+    "public": "index.html",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
   }
 }

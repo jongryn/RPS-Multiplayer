@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>AD_UNIT_ID_FOR_BANNER_TEST</key>
+	<string>ca-app-pub-3940256099942544/2934735716</string>
+	<key>AD_UNIT_ID_FOR_INTERSTITIAL_TEST</key>
+	<string>ca-app-pub-3940256099942544/4411468910</string>
+	<key>CLIENT_ID</key>
+	<string>742677860737-snre35v406efubch4pmgpb18vk9551ug.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.742677860737-snre35v406efubch4pmgpb18vk9551ug</string>
+	<key>API_KEY</key>
+	<string>AIzaSyD3bE2o36JH_e-_hr5qy7fTd_PQSC6vwZ4</string>
+	<key>GCM_SENDER_ID</key>
+	<string>742677860737</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>rpsmultiplayer.com</string>
+	<key>PROJECT_ID</key>
+	<string>rps-multiplayer-8d82a</string>
+	<key>STORAGE_BUCKET</key>
+	<string>rps-multiplayer-8d82a.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<true></true>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<false></false>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:742677860737:ios:a88a1381cb5e3b3d</string>
+	<key>DATABASE_URL</key>
+	<string>https://rps-multiplayer-8d82a.firebaseio.com</string>
+</dict>
+</plist>
